@@ -2,6 +2,7 @@
 
 .container{
     font-family: "Poppins", sans-serif;
+    animation: fadein 1s;
 }
 
 .header{
@@ -21,7 +22,10 @@
 }
 
 .data-field{
-    animation: fadein 0.5s;
+    border: none;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
 }
 
 .action{
@@ -47,17 +51,17 @@
 @keyframes highlight{
     0%{
         color: black;
-        transform: scale(1);
+        font-size: 20px;
     }
 
     50%{
         color: red;
-        transform: scale(1.5);
+        font-size: 30px; 
     }
 
     100%{
         color: black;
-        transform: scale(1);
+        font-size: 20px;
     }
 
 }

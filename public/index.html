@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="../secret.js"></script>
+    <script src="secret.js"></script>
     <script src="script.js"></script>
     <link rel="stylesheet" href="style.css" />
 </head>
@@ -19,15 +19,15 @@
         <table>
             <tr class="item">
                 <td class="value_label">TDS:</td>
-                <td><span id="tdsValue" class="data-field"></span></td>
+                <td><input type="text" id="tdsValue" class="data-field" readonly/></td>
             </tr>
             <tr class="item">
                 <td class="value_label">Temperature (C):</td>
-                <td><span id="tempValue" class="data-field"></span></td>
+                <td><input type="text" id="tempValue" class="data-field" readonly/></td>
             </tr>
             <tr class="item">
                 <td class="value_label">pH:</td>
-                <td><span id="pHValue" class="data-field"></span></td>
+                <td><input type="text" id="pHValue" class="data-field" readonly/></td>
             </tr>
         </table>
 

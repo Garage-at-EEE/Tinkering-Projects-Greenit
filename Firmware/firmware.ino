@@ -66,16 +66,20 @@ float tdsValue = 0;
 float pHValue = 0.00;
 
 // Thresholds and desired values that will be inputed by Users
+float threshold = 0.1; // Threshold for user input pH and EC
 float pHf = 6.0; // pH lower bound, f  for floor
 float pHc = 7.0; // pH upper bound, c  for ceiling
 float ECf = 1.5; // EC lower bound
 float ECc = 2.0; // EC upper bound
+float expected_pH; // user desired pH value
+float expected_EC; // user desired EC value
 float water_level_threshold = 2024; // eg threshold for water level
+bool received_user_input = false; // Trigger to start controlling the system
 
 // Time constraints
 unsigned long startTime;
 unsigned long runDuration = 1728000000; // 20 days in milliseconds
- 
+
  
  // median filtering algorithm
 int getMedianNum(int bArray[], int iFilterLen){
@@ -219,9 +223,13 @@ void f3(float water_level, float water_level_threshold) {
   }
 }
 
-void regulator(float pH, float EC, float temperature) {
+void regulator(float pH, float EC, float temperature, float expected_pH, float expected_EC) {
   Serial.println("test1");
-  if (pH < pHf || dpH > pHc)
+  pHf = (1 - threshold) * expected_pH;
+  pHc = (1 + threshold) * expected_pH;
+  ECf = (1 - threshold) * expected_EC;
+  ECc = (1 + threshold) * expected_EC;
+  if (pH < pHf || pH > pHc)
   {
     f1(pH, pHf, pHc);
   }
@@ -232,6 +240,30 @@ void regulator(float pH, float EC, float temperature) {
     f3(water_level, water_level_threshold);
     
   }
+
+void check_user_input() {
+  // Check if the user has inputted any values
+  // If so, update the thresholds and desired values
+  if (Firebase.RTDB.getFloat(&fbdo, "ExpectedPH/float")){
+    expected_pH = fbdo.floatData();
+    Serial.println("Expected pH: " + String(expected_pH));
+  }
+  else {
+    Serial.println("Failed to get Expected pH");
+    Serial.println("REASON: " + fbdo.errorReason());
+  }
+
+  if (Firebase.RTDB.getFloat(&fbdo, "ExpectedEC/float")){
+    expected_EC = fbdo.floatData();
+    Serial.println("Expected EC: " + String(expected_EC));
+  }
+  else {
+    Serial.println("Failed to get Expected EC");
+    Serial.println("REASON: " + fbdo.errorReason());
+  }
+
+  return expected_pH, expected_EC;
+}
 
 
 // 'setting up' 
@@ -289,6 +321,13 @@ void setup() {
 
 
 void loop() {
+  while(!received_user_input) {
+    expected_pH, expected_EC = check_user_input();
+    if (expected_pH != 0 && expected_EC != 0) {
+      received_user_input = true;
+    }
+  }
+
   unsigned long currentTime = millis();
   if (currentTime - startTime >= runDuration) {// Check if the total runtime has exceeded 20 days
     Serial.println("20 days have passed. Ready to harvest!.");
@@ -308,7 +347,7 @@ void loop() {
   float EC = 0.64*tdsValue;
 
   // Regulate pH, EC, and water level (Add motor code into it before uncommenting this function)
-  regulator(pH, EC, temperature);
+  regulator(pH, EC, temperature, expected_pH, expected_EC);
   pH = detect_pH();
   float tdsValue = detect_TDS(temperature)/0.64;
   EC = 0.64*tdsValue;

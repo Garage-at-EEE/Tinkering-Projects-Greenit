@@ -67,10 +67,10 @@ float pHValue = 0.00;
 
 // Thresholds and desired values that will be inputed by Users
 float threshold = 0.1; // Threshold for user input pH and EC
-float pHf = 6.0; // pH lower bound, f  for floor
-float pHc = 7.0; // pH upper bound, c  for ceiling
-float ECf = 1.5; // EC lower bound
-float ECc = 2.0; // EC upper bound
+float pHf; // pH lower bound, f  for floor
+float pHc; // pH upper bound, c  for ceiling
+float ECf; // EC lower bound
+float ECc; // EC upper bound
 float expected_pH; // user desired pH value
 float expected_EC; // user desired EC value
 float water_level_threshold = 2024; // eg threshold for water level
@@ -79,7 +79,6 @@ bool received_user_input = false; // Trigger to start controlling the system
 // Time constraints
 unsigned long startTime;
 unsigned long runDuration = 1728000000; // 20 days in milliseconds
-
  
  // median filtering algorithm
 int getMedianNum(int bArray[], int iFilterLen){
@@ -183,14 +182,16 @@ float detect_waterLevel(){
 void f1(float pH, float pHf, float pHc) {
   if (pH > pHc) {
     digitalWrite(PH_DOWN_PIN, HIGH);
-    delay(500); // Add buffer time for pumping action
+    delay(5000); // Add buffer time for pumping action
+    Serial.println("Pump 1");
     digitalWrite(PH_DOWN_PIN, LOW);
-    delay(300000);
+    delay(3000);
   } else if (pH < pHf) {
     digitalWrite(PH_UP_PIN, HIGH);
-    delay(500); // Add buffer time for pumping action
+    delay(5000); // Add buffer time for pumping action
+    Serial.println("Pump 2");
     digitalWrite(PH_UP_PIN, LOW);
-    delay(300000); //assuming 5 mins needed for pH to settle after pump
+    delay(3000); //assuming 5 mins needed for pH to settle after pump
   }
   else {
     return;
@@ -201,12 +202,16 @@ void f2(float EC, float ECf, float ECc) {
   
   if (EC < ECf) {
     digitalWrite(NUTRIENT_PIN, HIGH);
-    delay(500);
+    delay(5000);
+    Serial.println("Pump 3");
     digitalWrite(NUTRIENT_PIN, LOW);
+    delay(3000);
   } else if (EC > ECc) {
-    digitalWrite(flush_PIN, HIGH);
-    delay(500); 
-    digitalWrite(flush_PIN, LOW);
+    digitalWrite(WATER_PIN, HIGH);
+    delay(5000); 
+    Serial.println("Pump 4");
+    digitalWrite(WATER_PIN, LOW);
+    delay(3000);
   }
   else {
     return;
@@ -216,7 +221,7 @@ void f2(float EC, float ECf, float ECc) {
 void f3(float water_level, float water_level_threshold) {
   if (water_level < water_level_threshold) { //the inequality symbol is counterintuitive as the higher the water_level, the lower its' analog value
     digitalWrite(flush_PIN, HIGH);
-    delay(500);
+    delay(5000);
     digitalWrite(flush_PIN, LOW);
   } else {
     digitalWrite(flush_PIN, LOW);
@@ -224,7 +229,7 @@ void f3(float water_level, float water_level_threshold) {
 }
 
 void regulator(float pH, float EC, float temperature, float expected_pH, float expected_EC) {
-  Serial.println("test1");
+  Serial.println("Regulating");
   pHf = (1 - threshold) * expected_pH;
   pHc = (1 + threshold) * expected_pH;
   ECf = (1 - threshold) * expected_EC;
@@ -241,7 +246,7 @@ void regulator(float pH, float EC, float temperature, float expected_pH, float e
     
   }
 
-void check_user_input() {
+float check_user_input() {
   // Check if the user has inputted any values
   // If so, update the thresholds and desired values
   if (Firebase.RTDB.getFloat(&fbdo, "ExpectedPH/float")){
@@ -252,8 +257,7 @@ void check_user_input() {
     Serial.println("Failed to get Expected pH");
     Serial.println("REASON: " + fbdo.errorReason());
   }
-
-  if (Firebase.RTDB.getFloat(&fbdo, "ExpectedEC/float")){
+  if (Firebase.RTDB.getFloat(&fbdo, "ExpectedTDS/float")){
     expected_EC = fbdo.floatData();
     Serial.println("Expected EC: " + String(expected_EC));
   }
@@ -261,7 +265,6 @@ void check_user_input() {
     Serial.println("Failed to get Expected EC");
     Serial.println("REASON: " + fbdo.errorReason());
   }
-
   return expected_pH, expected_EC;
 }
 
@@ -349,7 +352,7 @@ void loop() {
   // Regulate pH, EC, and water level (Add motor code into it before uncommenting this function)
   regulator(pH, EC, temperature, expected_pH, expected_EC);
   pH = detect_pH();
-  float tdsValue = detect_TDS(temperature)/0.64;
+  tdsValue = detect_TDS(temperature)/0.64;
   EC = 0.64*tdsValue;
 
 if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sendDataPrevMillis == 0)){
@@ -369,7 +372,7 @@ if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sen
     // Write an Float number on the database path test/float
     
     
-    if (Firebase.RTDB.setFloat(&fbdo, "TDS/float", detected_EC)){
+    if (Firebase.RTDB.setFloat(&fbdo, "TDS/float", EC)){
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
@@ -379,7 +382,7 @@ if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sen
       Serial.println("REASON: " + fbdo.errorReason());
     }
 
-if (Firebase.RTDB.setFloat(&fbdo, "pH/float", detected_pH)){
+if (Firebase.RTDB.setFloat(&fbdo, "pH/float", pH)){
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());

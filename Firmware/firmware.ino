@@ -45,6 +45,9 @@ bool signupOK = false;
 #define flush_PIN 23
 #define pH_PIN 34 // Use any analog pin
 #define oneWireBus 33 
+#define Relaytemp 2
+#define Relayph 4
+#define Relayec 13
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(oneWireBus);
 
@@ -80,6 +83,20 @@ bool received_user_input = false; // Trigger to start controlling the system
 unsigned long startTime;
 unsigned long runDuration = 1728000000; // 20 days in milliseconds
  
+ 
+ // Detect Tmeperature
+ float detect_temperature(){  
+  digitalWrite(Relaytemp, HIGH);
+  sensors.requestTemperatures(); 
+  float temperature = sensors.getTempCByIndex(0);
+  // float temperatureF = sensors.getTempFByIndex(0);
+   digitalWrite(Relaytemp, LOW); 
+  Serial.print("temperature: ");
+  Serial.print(temperature);
+  Serial.println("ºC");
+  }
+ 
+ 
  // median filtering algorithm
 int getMedianNum(int bArray[], int iFilterLen){
   int bTab[iFilterLen];
@@ -110,9 +127,11 @@ float detect_TDS(float temperature){
   if(millis()-analogSampleTimepoint > 40U) //every 40 milliseconds,read the analog value from the ADC
   {     
     analogSampleTimepoint = millis();
+    digitalWrite(Relayec, HIGH);
     analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);    //read the analog value and store into the buffer
     // Serial.println("TDS Raw_correct: ");
     // Serial.print(analogBuffer[analogBufferIndex]);
+    digitalWrite(Relayec, LOW);
     analogBufferIndex++;
     if(analogBufferIndex == SCOUNT)
     { 
@@ -151,7 +170,9 @@ float detect_TDS(float temperature){
 }
 
 float detect_pH(){
+  digitalWrite(Relayph, HIGH);
 int sensorValue = analogRead(pH_PIN);
+  digitalWrite(Relayph, LOW);
   
   // Convert the analog reading to a voltage
   float voltage_pH = sensorValue * (3.3 / 4096.0);
@@ -227,7 +248,6 @@ void f3(float water_level, float water_level_threshold) {
     digitalWrite(flush_PIN, LOW);
   }
 }
-
 void regulator(float pH, float EC, float temperature, float expected_pH, float expected_EC) {
   Serial.println("Regulating");
   pHf = (1 - threshold) * expected_pH;
@@ -317,6 +337,9 @@ void setup() {
   pinMode(NUTRIENT_PIN, OUTPUT);
   pinMode(WATER_PIN, INPUT);
   pinMode(flush_PIN, OUTPUT);
+  pinMode(Relaytemp, OUTPUT);
+  pinMode(Relayph, OUTPUT);
+  pinMode(Relayec, OUTPUT);
   
   // Initialize start time
   startTime = millis();
@@ -336,14 +359,8 @@ void loop() {
     Serial.println("20 days have passed. Ready to harvest!.");
     while (true); // Stop further execution
   }
-  
-  sensors.requestTemperatures(); 
-  float temperature = sensors.getTempCByIndex(0);
-  // float temperatureF = sensors.getTempFByIndex(0);
-    
-  Serial.print("temperature: ");
-  Serial.print(temperature);
-  Serial.println("ºC");
+
+  float temperature = detect_temperature();
 
   float pH = detect_pH();
   float tdsValue = detect_TDS(temperature)/0.64;
@@ -354,8 +371,7 @@ void loop() {
   pH = detect_pH();
   tdsValue = detect_TDS(temperature)/0.64;
   EC = 0.64*tdsValue;
-
-if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sendDataPrevMillis == 0)){
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sendDataPrevMillis == 0)){
     sendDataPrevMillis = millis();
     // Write an Int number on the database path test/int
     if (Firebase.RTDB.setInt(&fbdo, "test/int", count)){
@@ -403,4 +419,3 @@ if (Firebase.RTDB.setFloat(&fbdo, "pH/float", pH)){
 }
 
 }
-

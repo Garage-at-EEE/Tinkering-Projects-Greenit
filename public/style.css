@@ -116,6 +116,8 @@
     .container{
         margin: 5px;
     }
+
+    .header{width: 400px;}
     
     .header{
         font-size: 20px;
@@ -159,4 +161,15 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+.charts-container{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.single-chart-container{
+    width: 400px;
+    height: 200px;
 }

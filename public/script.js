@@ -14,6 +14,15 @@ let pHData = [];
 // Chart variables
 let tempChart, tdsChart, phChart;
 
+// Check for first load
+var isFirstLoad = true;
+
+// Function to round number to 2 decimal places
+function roundToTwo(num) {
+    return Math.round(num * 100) / 100;
+}
+
+
 // Function to initialize the charts after DOM is fully loaded
 function initializeCharts() {
     const tempCtx = document.getElementById('tempChart').getContext('2d');
@@ -94,18 +103,20 @@ function updateDisplay(data) {
     const pHValue = document.getElementById('pHValue');
 
     // Update values on the page and highlight if changed
-    if (tdsValue.value != data.TDS.float) notification(tdsValue);
+    if (tdsValue.value != data.TDS.float && !isFirstLoad) notification(tdsValue);
     tdsValue.value = data.TDS.float;
 
-    if (tempValue.value != data.TemperatureC.float) notification(tempValue);
+    if (tempValue.value != data.TemperatureC.float && !isFirstLoad) notification(tempValue);
     tempValue.value = data.TemperatureC.float;
 
-    if (pHValue.value != data.pH.float) notification(pHValue);
+    if (pHValue.value != data.pH.float && !isFirstLoad) notification(pHValue);
     pHValue.value = data.pH.float;
 
-    // Update expected values input fields
-    document.getElementById('expectedTdsInput').value = data.ExpectedTDS.float;
-    document.getElementById('expectedPHInput').value = data.ExpectedPH.float;
+    if (isFirstLoad) {
+        // Update expected values input fields
+        document.getElementById('expectedTdsInput').value = data.ExpectedTDS.float;
+        document.getElementById('expectedPHInput').value = data.ExpectedPH.float;
+    }
 
     // Limit to the 10 most recent data points by slicing the arrays
     if (timeLabels.length > 10) {
@@ -127,6 +138,8 @@ function updateDisplay(data) {
     phChart.data.labels = timeLabels;
     phChart.data.datasets[0].data = pHData;
     phChart.update();
+
+    isFirstLoad = false;
 }
 
 
@@ -139,10 +152,12 @@ function updateData() {
         ExpectedTDS: { float: expectedTds },
         ExpectedPH: { float: expectedPH }
     })
-    .then(() => { })
-    .catch((error) => {
-        console.error('Error updating data:', error);
-    });
+        .then(() => {
+            alert("Updated successfully!");
+        })
+        .catch((error) => {
+            console.error('Error updating data:', error);
+        });
 }
 
 // Initialize charts and start fetching data
@@ -156,5 +171,8 @@ window.onload = () => {
     dataRef.on('value', (snapshot) => {
         const data = snapshot.val();
         updateDisplay(data);
+        // Update expected values input fields
+        document.getElementById('expectedTdsInput').value = data.ExpectedTDS.float;
+        document.getElementById('expectedPHInput').value = data.ExpectedPH.float;
     });
 };

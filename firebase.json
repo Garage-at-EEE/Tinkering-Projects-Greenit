@@ -1,7 +1,7 @@
 {
     "hosting": {
         "site": "tinkering-projects-greenit-36562",
-        "public": "public",
+        "public": "web/build",
         "ignore": [
             "firebase.json",
             "**/.*",

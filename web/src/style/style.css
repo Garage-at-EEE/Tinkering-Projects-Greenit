@@ -141,3 +141,18 @@ input[type="number"] {
 .highlight {
     animation: highlight 1s;
 }
+
+.dropdown{
+    font-family: inherit;
+    outline: none;
+    border: 2px solid rgb(186, 186, 186);
+    color: black;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 10px;
+    transition: 1s;
+}
+
+.dropdown:focus{
+    border-color: green;
+}

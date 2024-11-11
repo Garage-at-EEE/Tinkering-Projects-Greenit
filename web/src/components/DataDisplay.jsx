@@ -35,7 +35,7 @@ function DataDisplay({ deviceID }) {
   }, [data]);
 
   return (<>
-    <h3>Real-time database</h3>
+    <h3>Real-time database: Device {deviceID}</h3>
     <table>
       <tbody>
         <tr className="item">

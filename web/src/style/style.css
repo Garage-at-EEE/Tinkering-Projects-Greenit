@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+.container {
+    font-family: "Poppins", sans-serif;
+    animation: fadein 1s;
+    margin: 20px 20px 200px 20px;
+}
+
+.header {
+    background-color: green;
+    color: white;
+    padding: 20px;
+}
+
+.value_label {
+    padding-right: 50px;
+}
+
+.num-input,
+.data-field {
+    font-family: "Poppins", sans-serif;
+    font-size: 20px;
+}
+
+.num-input {
+    width: 100px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 2px solid rgb(186, 186, 186);
+    outline: none;
+    transition: border-color 0.5s;
+}
+
+.num-input:focus {
+    border-color: green;
+}
+
+.data-field {
+    border: none;
+    outline: none;
+    background: none;
+}
+
+.action {
+    background-color: white;
+    color: green;
+    border: 2px solid green;
+    margin-top: 20px;
+    padding: 10px;
+    width: 120px;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.5s, color 0.5s, transform 0.1s;
+}
+
+.danger{
+    color: red;
+    border-color: red;
+}
+
+.action:hover {
+    background-color: lightgrey;
+}
+
+.action:active {
+    background-color: green;
+    color: white;
+    transform: scale(0.9);
+}
+
+.danger:active{
+    background-color: red;
+}
+
+@keyframes highlight {
+
+    0%,
+    100% {
+        color: black;
+        font-size: 20px;
+    }
+
+    50% {
+        color: red;
+        font-size: 30px;
+    }
+}
+
+.charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.single-chart-container {
+    width: 400px;
+    height: 200px;
+}
+
+/* Responsive Design */
+
+@media (max-width: 700px) {
+
+    /* Mobile */
+    .container {
+        margin: 5px;
+    }
+
+    .header {
+        font-size: 20px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .value_label {
+        padding-right: 20px;
+    }
+
+    .num-input,
+    .action {
+        font-size: 16px;
+    }
+
+    .action {
+        width: 100px;
+        padding: 8px;
+    }
+}
+
+/* Disable Number Input Spinner */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.highlight {
+    animation: highlight 1s;
+}
